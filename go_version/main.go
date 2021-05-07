@@ -135,5 +135,5 @@ func main() {
 	defer f.Close()
 
 	end := time.Now()
-	fmt.Printf("Speed: %.2f\n", (952.0 / end.Sub(start).Seconds()))
+	fmt.Printf("Speed: %.2f MB/s\n", (952.0 / end.Sub(start).Seconds()))
 }

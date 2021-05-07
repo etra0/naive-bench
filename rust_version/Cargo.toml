@@ -11,3 +11,6 @@ serde_json = "1.0"
 simd-json = "0.4"
 rayon = "1.5"
 chrono = "0.4"
+
+[features]
+simd_json = []
