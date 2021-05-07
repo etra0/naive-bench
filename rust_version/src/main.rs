@@ -1,16 +1,16 @@
-#[cfg(feature= "simd_json")]
+#[cfg(feature = "simd_json")]
 use simd_json::{self, ValueAccess};
 
-#[cfg(not(feature= "simd_json"))]
+#[cfg(not(feature = "simd_json"))]
 use serde_json;
 
+use chrono::prelude::*;
+use rayon::prelude::*;
 use std::fs;
-use std::io::{Write, BufWriter};
+use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use rayon::prelude::*;
 use std::time;
-use chrono::prelude::*;
 
 type ResultBoxed<O> = std::result::Result<O, Box<dyn std::error::Error>>;
 type ArcMutex<T> = Arc<Mutex<T>>;
@@ -53,7 +53,7 @@ impl std::fmt::Display for Entry {
 
 fn format_date(timestamp: u64) -> String {
     let date = Utc.timestamp(timestamp as _, 0);
-    return date.to_string()
+    return date.to_string();
 }
 
 #[cfg(feature = "simd_json")]
@@ -68,12 +68,16 @@ fn parse_json(f: &PathBuf, result: &ArcMutex<Vec<Entry>>) -> ResultBoxed<()> {
         }
     };
 
-    let nodes = parsed_json["data"]["feedback"]["display_comments"]["edges"].as_array().unwrap();
+    let nodes = parsed_json["data"]["feedback"]["display_comments"]["edges"]
+        .as_array()
+        .unwrap();
     for n in nodes.iter() {
         let n = &n["node"];
 
         macro_rules! u {
-            ($x:expr) => { $x.unwrap() }
+            ($x:expr) => {
+                $x.unwrap()
+            };
         }
 
         local_results.push(Entry {
@@ -84,7 +88,7 @@ fn parse_json(f: &PathBuf, result: &ArcMutex<Vec<Entry>>) -> ResultBoxed<()> {
             timestamp: format_date(u!(n["created_time"].as_u64()) as _),
             reactions: u!(n["feedback"]["reactors"]["count"].as_u64()) as _,
             url: u!(n["url"].as_str()).to_owned(),
-            comment: n["body"].get_str("text").map(|x| x.to_owned())
+            comment: n["body"].get_str("text").map(|x| x.to_owned()),
         });
     }
     let mut end = result.lock().unwrap();
@@ -106,23 +110,29 @@ fn parse_json(f: &PathBuf, result: &ArcMutex<Vec<Entry>>) -> ResultBoxed<()> {
         }
     };
 
-    let nodes = parsed_json["data"]["feedback"]["display_comments"]["edges"].as_array().unwrap();
+    let nodes = parsed_json["data"]["feedback"]["display_comments"]["edges"]
+        .as_array()
+        .unwrap();
     for n in nodes.iter() {
         let n = &n["node"];
 
         macro_rules! u {
-            ($x:expr) => { $x.unwrap() }
+            ($x:expr) => {
+                $x.unwrap()
+            };
         }
 
         local_results.push(Entry {
             id: u!(n["id"].as_str()).to_owned(),
             author_id: u!(n["author"]["id"].as_str()).to_owned(),
             author_name: u!(n["author"]["name"].as_str()).to_owned(),
-            author_gender: n["author"].get("gender").map_or(None, |x| Some(x.to_string())),
+            author_gender: n["author"]
+                .get("gender")
+                .map_or(None, |x| Some(x.to_string())),
             timestamp: format_date(u!(n["created_time"].as_u64()) as _),
             reactions: u!(n["feedback"]["reactors"]["count"].as_u64()) as _,
             url: u!(n["url"].as_str()).to_owned(),
-            comment: n["body"].get("text").map_or(None, |x| Some(x.to_string()))
+            comment: n["body"].get("text").map_or(None, |x| Some(x.to_string())),
         });
     }
     let mut end = result.lock().unwrap();
@@ -133,14 +143,11 @@ fn parse_json(f: &PathBuf, result: &ArcMutex<Vec<Entry>>) -> ResultBoxed<()> {
 }
 
 fn multithreaded(data_path: &Vec<PathBuf>) -> ResultBoxed<()> {
-    let results: ArcMutex<Vec<Entry>> =
-        Arc::new(Mutex::new(Vec::with_capacity(2000 * 2000)));
+    let results: ArcMutex<Vec<Entry>> = Arc::new(Mutex::new(Vec::with_capacity(2000 * 2000)));
 
-    data_path
-        .par_iter()
-        .for_each(|path| {
-            parse_json(path, &results).unwrap();
-        });
+    data_path.par_iter().for_each(|path| {
+        parse_json(path, &results).unwrap();
+    });
 
     println!("Dumping the csv");
     let file = std::fs::File::create("output.csv")?;
@@ -170,6 +177,9 @@ fn main() -> ResultBoxed<()> {
     let now = time::Instant::now();
     multithreaded(&data_path)?;
     let result = time::Instant::now();
-    println!("Speed: {} MB/s", 952. / result.duration_since(now).as_secs_f32());
+    println!(
+        "Speed: {} MB/s",
+        952. / result.duration_since(now).as_secs_f32()
+    );
     Ok(())
 }

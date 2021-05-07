@@ -87,14 +87,14 @@ func parse_json(filename string, output *[]*entry, m *sync.Mutex, done chan<- bo
 }
 
 func main() {
-	args := os.Args;
+	args := os.Args
 	if len(args) < 2 {
 		fmt.Println("Not enough arguments")
 		return
 	}
 	datapath := args[1]
 
-	// Output will contain all of our entries, each job will 
+	// Output will contain all of our entries, each job will
 	// write into it using the mutex to avoid data races.
 	output := make([]*entry, 0)
 	m := &sync.Mutex{}
