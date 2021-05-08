@@ -6,7 +6,7 @@ import time
 import pandas as pd
 
 start = time.time()
-PATH = "../output_old"
+PATH = "../data"
 records = list()
 for filename in sorted(os.listdir(PATH)):
     data = None

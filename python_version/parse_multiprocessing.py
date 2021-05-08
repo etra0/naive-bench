@@ -5,7 +5,7 @@ import time
 import multiprocessing
 import pandas as pd
 
-PATH = "../output_old"
+PATH = "../data"
 
 def parse(filename, records):
     local_records = list()
